@@ -44,8 +44,8 @@ export default function Events({ params }) {
                 <div>
                     <Label className="text-xl font-bold">Event beskrivelse</Label>
                     <p>
-                        Join us for our annual charity gala, where we'll be raising funds for the local community.
-                        This year's event will feature a silent auction, live music, and a delicious dinner.
+                        Join us for our annual charity gala, where well be raising funds for the local community.
+                        This years event will feature a silent auction, live music, and a delicious dinner.
                         Dress to impress and get ready for a night of fun and philanthropy!
                     </p>
                 </div>
@@ -58,7 +58,7 @@ export default function Events({ params }) {
                             <CardDescription>Dato tid</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <p>I'm so excited for this event! Can't wait to see everyone there. </p>
+                            <p>Im so excited for this event! Cant wait to see everyone there. </p>
                         </CardContent>
                     </Card>
                 </div>
