@@ -149,7 +149,7 @@ export default function Events() {
     return (
         <div className='flex flex-col p-10 gap-5'>
             <div className='relative w-[80vw] h-[350px]'>
-                <img src="https://miro.medium.com/v2/resize:fit:1400/1*ydhn1QPAKsrbt6UWfn3YnA.jpeg" alt="img" className='w-full h-full object-cover' />
+                <img src="https://miro.medium.com/v2/resize:fit:1400/1*ydhn1QPAKsrbt6UWfn3YnA.jpeg" alt="img" className='w-full h-full object-cover rounded-md' />
                 <div className='absolute inset-0 flex  top-12 left-12'>
                     <span className=' text-white text-3xl font-bold'>Se alle nye eventer</span>
                 </div>
