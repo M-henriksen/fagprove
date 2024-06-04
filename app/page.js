@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { onAuthStateChanged } from 'firebase/auth'
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Link from "next/link"
@@ -8,6 +9,7 @@ import { db } from "@/lib/firebase";
 import { collection, limit, onSnapshot, query, } from "firebase/firestore";
 import { MoveHorizontalIcon, UsersIcon, ChevronRight } from "lucide-react"
 import { Label } from "@/components/ui/label";
+import { auth } from "@/lib/firebase";
 
 
 export default function Home() {
@@ -22,6 +24,17 @@ export default function Home() {
   const groupCollectionRef = collection(db, "groups")
   const eventsCollectionRef = collection(db, "events")
   useEffect(() => {
+
+    const unsubUser = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        //setUser(currentUser)
+    
+      } else {
+        router.push("/login")
+      }
+    });
+
+
     const groupQ = query(groupCollectionRef, limit(5))
     const unsubscribeGroup = onSnapshot(groupQ, (snapshot) => {
       const data = snapshot.docs.map((doc) => {
@@ -37,8 +50,10 @@ export default function Home() {
       setEvents(data);
     });
     return () => {
+      unsubUser()
       unsubscribeGroup();
       unsubscribeEvents();
+
     };
   }, []);
   console.log(groups)

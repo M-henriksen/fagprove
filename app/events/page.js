@@ -83,6 +83,7 @@ export default function Events() {
 
     console.log(qParam)
     useEffect(() => {
+
         const unsubUser = onAuthStateChanged(auth, (currentUser) => {
             if (currentUser) {
                 setUser(currentUser)

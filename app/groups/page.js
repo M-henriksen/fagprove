@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import { db } from '@/lib/firebase'
 import { collection, getDocs, onSnapshot } from 'firebase/firestore'
+import { onAuthStateChanged } from 'firebase/auth'
 import { Label } from '@/components/ui/label'
 import {
     Card,
@@ -31,6 +32,15 @@ export default function Events() {
 
     //trenger q parameter for sortering av grupper
     useEffect(() => {
+
+        const unsubUser = onAuthStateChanged(auth, (currentUser) => {
+            if (currentUser) {
+               // setUser(currentUser)
+            } else {
+                router.push("/login")
+            }
+        });
+
         const unsubscribe = onSnapshot(groupCollectionRef, (snapshot) => {
             const data = snapshot.docs.map((doc) => {
                 return { id: doc.id, ...doc.data() };
@@ -38,7 +48,9 @@ export default function Events() {
             setData(data);
         });
         return () => {
+            unsubUser()
             unsubscribe();
+        
         };
     }, []);
 

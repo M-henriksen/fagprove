@@ -10,28 +10,44 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { db } from '@/lib/firebase'
 import { onSnapshot, doc, collection, query, where, getDocs } from 'firebase/firestore'
+import { onAuthStateChanged } from 'firebase/auth'
 import { addPost } from '@/lib/events'
 import { auth } from '@/lib/firebase'
+import dayjs from 'dayjs'
+import { useRouter } from 'next/navigation'
+import { updateAttendes } from '@/lib/events'
 
 export default function Events({ params }) {
-    //params.id
+    const router = useRouter()
     const docId = params.id
     const docRef = doc(db, "events", docId)
     const postsCollectionRef = collection(db, "events", docId, "posts")
-    const attendanceCollectionRef = collection(db, "events", docId, "attendance")
-
+    //const attendanceCollectionRef = collection(db, "events", docId, "attendance")
     const [event, setEvent] = useState({ memberInfo: [] })
     const [posts, setPosts] = useState([])
+    const [user, setUser] = useState({})
     const [comment, setComment] = useState("")
-
-    const [attendanceStatus, setAttendanceStatus] = useState("")
-
-    console.log(event)
+    const [attendanceStatus, setAttendanceStatus] = useState("ss")
 
     useEffect(() => {
+        const unsubUser = onAuthStateChanged(auth, (currentUser) => {
+            if (currentUser) {
+                setUser(currentUser)
+            } else {
+                router.push("/login")
+            }
+        });
         const unsubGroup = onSnapshot(docRef, (docSnapshot) => {
             console.log(docSnapshot);
             if (docSnapshot.exists()) {
@@ -39,45 +55,47 @@ export default function Events({ params }) {
             }
         });
 
-        //må ha en fuksjon som henter attendence statusen på bruker
+        const statusDocRef = doc(db, "users", `${user.uid}`, "events", docId)
+        const unsubAttendeceStatus = onSnapshot(statusDocRef, (docSnapshot) => {
+            if (docSnapshot.exists()) {
+                setAttendanceStatus(docSnapshot.data().attendence)
+            }
+        })
+
+  //      const userDocRef = doc(db, "users", `${user.uid}`)
 
         //q parameter og sort på tid
-
         const unsubPosts = onSnapshot(postsCollectionRef, (snapshot) => {
             const data = snapshot.docs.map((doc) => {
-                return { id: doc.id, ...doc.data() };
+                let posted = dayjs(doc.data.posted).format("DD-MM-YYYY HH:mm")
+                return { id: doc.id, ...doc.data(), posted };
             });
             setPosts(data);
         });
-
         return () => {
+            unsubUser()
+
+
+            unsubAttendeceStatus()
+
             unsubGroup();
             unsubPosts();
-
         };
-    }, []);
+    }, [user]);
 
 
-    const handleAttendanceStatus = async () => {
+    console.log("status", attendanceStatus)
 
+    const handleAttendanceStatus = async (value) => {
+        try {
+            const res = await updateAttendes(docId, value, attendanceStatus)
+            console.log(res)
+        } catch (error) {
+            console.log(error)
+        }
     }
 
-    console.log("Kommentar", comment)
     const handlePostComment = async () => {
-
-        const getUserData = async () => {
-            const userID = auth.currentUser.uid
-            const usersRef = collection(db, "users");
-            const q = query(usersRef, where("uid", "==", userID))
-            const userData = await getDocs(q);
-            let users = userData.docs.map(doc => doc.data());
-
-            console.log(users)
-            return users[0]
-        }
-
-        getUserData()
-
         console.log("runs")
         try {
             const res = await addPost(docId, comment)
@@ -86,7 +104,6 @@ export default function Events({ params }) {
             console.log(error)
             return error
         }
-
     }
 
     return (
@@ -104,7 +121,7 @@ export default function Events({ params }) {
                             <CardTitle>Inviterte</CardTitle>
                             <CardDescription>Se påmeldte</CardDescription>
                         </CardHeader>
-                        <CardContent className="flex flex-col gap-2">
+                        <CardContent className="flex flex-col gap-1">
                             {
                                 event.memberInfo.slice(0, 5).map((member) => (
                                     <span key={member.uid}>{member.fullName}</span>
@@ -112,10 +129,30 @@ export default function Events({ params }) {
                             }
                         </CardContent>
                         <CardFooter className="flex justify-end">
-                            <Button variant="ghost">se mer</Button>
+                            <Dialog>
+                                <DialogTrigger>Se alle</DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Alle inviterte</DialogTitle>
+                                        <DialogDescription>
+                                            Her kan du se alle som er inviterte til dette eventet
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    {
+                                        event.memberInfo.map((member) => (
+                                            <div key={member.uid} className='flex gap-2'>
+                                                <span>{member.fullName}</span>
+                                                <span>invitert: {member.added}</span>
+                                                {/* vist jeg får tid kan jeg lage en profil side også 
+                                                <Button variant="ghost">les mer</Button>
+                                                */}
+                                            </div>
+                                        ))
+                                    }
+                                </DialogContent>
+                            </Dialog>
                         </CardFooter>
                     </Card>
-
                     <div className='flex flex-col gap-3'>
                         <div className='flex flex-col gap-2 text-left'>
                             <Label className="text-xl font-bold">Attendance</Label>
@@ -136,12 +173,8 @@ export default function Events({ params }) {
                             <span>{event.location}</span>
                         </div>
 
-
                     </div>
                 </div>
-
-
-
 
                 <div>
                     <Label className="text-xl font-bold w-full">Event beskrivelse</Label>
@@ -151,12 +184,12 @@ export default function Events({ params }) {
                 </div>
 
                 <Label className="text-xl font-bold">Kommentarer</Label>
-                <div>
+                <div className='flex flex-col gap-3'>
                     {posts.map((post) => (
                         <Card key={post.id}>
                             <CardHeader>
                                 <CardTitle>{post.name}</CardTitle>
-                                <CardDescription>{post.posted[0]}</CardDescription>
+                                <CardDescription>{post.posted}</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 {post.content}

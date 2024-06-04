@@ -33,12 +33,16 @@ import {
 import { addMember } from '@/lib/group'
 import { Label } from "@/components/ui/label"
 import { onSnapshot, doc, collection, getDocs } from 'firebase/firestore'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth } from '@/lib/firebase'
 import { db } from '@/lib/firebase'
 import dayjs from 'dayjs'
 import { addPost } from '@/lib/group'
+import { useRouter } from 'next/navigation'
 
 export default function Groups({ params }) {
     const { toast } = useToast()
+    const router = useRouter()
     const docID = params.id
     const [data, setData] = useState([])
     const [posts, setPosts] = useState([])
@@ -52,6 +56,16 @@ export default function Groups({ params }) {
 
     console.log(docRef);
     useEffect(() => {
+
+        const unsubUser = onAuthStateChanged(auth, (currentUser) => {
+            if (currentUser) {
+                // setUser(currentUser)
+            } else {
+                router.push("/login")
+            }
+        });
+
+
         const unsubGroup = onSnapshot(docRef, (docSnapshot) => {
             console.log(docSnapshot);
             if (docSnapshot.exists()) {
@@ -68,6 +82,7 @@ export default function Groups({ params }) {
         });
 
         return () => {
+            unsubUser()
             unsubGroup();
             unsubPosts()
         };
@@ -113,11 +128,11 @@ export default function Groups({ params }) {
             console.log(res)
         } catch (error) {
             console.log(error)
-          //  toast({
-          //      variant: "destructive",
-          //      title: "Det har skjedd en feil",
-          //      description: error,
-          // })
+            //  toast({
+            //      variant: "destructive",
+            //      title: "Det har skjedd en feil",
+            //      description: error,
+            // })
         }
     }
 
