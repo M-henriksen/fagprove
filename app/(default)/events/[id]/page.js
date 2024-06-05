@@ -18,6 +18,15 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+    SelectGroup,
+    SelectLabel
+} from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { db } from '@/lib/firebase'
 import { onSnapshot, doc, collection, query, where, getDocs } from 'firebase/firestore'
@@ -26,7 +35,8 @@ import { addPost } from '@/lib/events'
 import { auth } from '@/lib/firebase'
 import dayjs from 'dayjs'
 import { useRouter } from 'next/navigation'
-import { updateAttendes } from '@/lib/events'
+import { updateAttendes, addMember } from '@/lib/events'
+
 
 export default function Events({ params }) {
     const router = useRouter()
@@ -38,7 +48,10 @@ export default function Events({ params }) {
     const [posts, setPosts] = useState([])
     const [user, setUser] = useState({})
     const [comment, setComment] = useState("")
-    const [attendanceStatus, setAttendanceStatus] = useState("ss")
+    const [attendants, setAttendants] = useState([])
+    const [attendanceStatus, setAttendanceStatus] = useState("")
+    const [users, setUsers] = useState([])
+    const [member, setMember] = useState({})
 
     useEffect(() => {
         const unsubUser = onAuthStateChanged(auth, (currentUser) => {
@@ -55,14 +68,29 @@ export default function Events({ params }) {
             }
         });
 
+
+        {/** 
         const statusDocRef = doc(db, "users", `${user.uid}`, "events", docId)
         const unsubAttendeceStatus = onSnapshot(statusDocRef, (docSnapshot) => {
             if (docSnapshot.exists()) {
                 setAttendanceStatus(docSnapshot.data().attendence)
             }
         })
+        */}
 
-  //      const userDocRef = doc(db, "users", `${user.uid}`)
+
+        const attendanceCollectionRef = collection(db, "events", docId, "attendence")
+
+        const unsubAttendece = onSnapshot(attendanceCollectionRef, (snapshot) => {
+            const data = snapshot.docs.map((doc) => {
+                let updated = dayjs(doc.data.updated).format("DD-MM-YYYY HH:mm")
+                return { id: doc.id, ...doc.data(), updated };
+            });
+            setAttendants(data);
+        });
+
+
+        //      const userDocRef = doc(db, "users", `${user.uid}`)
 
         //q parameter og sort på tid
         const unsubPosts = onSnapshot(postsCollectionRef, (snapshot) => {
@@ -74,10 +102,7 @@ export default function Events({ params }) {
         });
         return () => {
             unsubUser()
-
-
-            unsubAttendeceStatus()
-
+            unsubAttendece()
             unsubGroup();
             unsubPosts();
         };
@@ -95,6 +120,17 @@ export default function Events({ params }) {
         }
     }
 
+    const handleGetUsers = async () => {
+        const usersRef = collection(db, "users");
+        try {
+            const userData = await getDocs(usersRef);
+            const users = userData.docs.map(doc => doc.data());
+            setUsers(users);
+        } catch (error) {
+            console.error("Error getting documents: ", error);
+        }
+    }
+
     const handlePostComment = async () => {
         console.log("runs")
         try {
@@ -105,6 +141,28 @@ export default function Events({ params }) {
             return error
         }
     }
+
+    const handleAddingMember = async () => {
+        try {
+            const res = await addMember(docId, member)
+            console.log(res)
+            toast({
+                title: "Medlem lagt til",
+                description: `${member.firstName} ble invitert til eventet`,
+            })
+
+            console.log(res)
+        } catch (error) {
+            console.log(error)
+            //  toast({
+            //      variant: "destructive",
+            //      title: "Det har skjedd en feil",
+            //      description: error,
+            // })
+        }
+    }
+
+    console.log("inviterte status", attendants)
 
     return (
         <div className='flex flex-col p-10 gap-5 w-[60vw]'>
@@ -123,34 +181,71 @@ export default function Events({ params }) {
                         </CardHeader>
                         <CardContent className="flex flex-col gap-1">
                             {
-                                event.memberInfo.slice(0, 5).map((member) => (
-                                    <span key={member.uid}>{member.fullName}</span>
+                                attendants.slice(0, 5).map((person) => (
+                                    <span key={person.uid}>{person.name}</span>
                                 ))
                             }
                         </CardContent>
                         <CardFooter className="flex justify-end">
-                            <Dialog>
-                                <DialogTrigger>Se alle</DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Alle inviterte</DialogTitle>
-                                        <DialogDescription>
-                                            Her kan du se alle som er inviterte til dette eventet
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    {
-                                        event.memberInfo.map((member) => (
-                                            <div key={member.uid} className='flex gap-2'>
-                                                <span>{member.fullName}</span>
-                                                <span>invitert: {member.added}</span>
-                                                {/* vist jeg får tid kan jeg lage en profil side også 
+                            <div className='flex flex-col gap-3'>
+                                <Dialog>
+                                    <DialogTrigger>Se alle</DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Alle inviterte</DialogTitle>
+                                            <DialogDescription>
+                                                Her kan du se alle som er inviterte til dette eventet
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        {
+                                            attendants.map((person) => (
+                                                <div key={person.uid} className='flex gap-2'>
+                                                    <span>{person.name}</span>
+                                                    <span>invitert: {person.updated}</span>
+                                                    <span>status: {person.attendence}</span>
+                                                    {/* vist jeg får tid kan jeg lage en profil side også 
                                                 <Button variant="ghost">les mer</Button>
                                                 */}
-                                            </div>
-                                        ))
-                                    }
-                                </DialogContent>
-                            </Dialog>
+                                                </div>
+                                            ))
+                                        }
+                                    </DialogContent>
+                                </Dialog>
+
+                                <Dialog>
+                                    <DialogTrigger onClick={handleGetUsers}>Legg til medlem</DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Legg til medlem</DialogTitle>
+                                            <DialogDescription>
+                                                Velg bruker og legg til
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <div className='flex gap-3'>
+                                            <Select onValueChange={(value) => setMember(value)} >
+                                                <SelectTrigger className="w-[180px]" >
+                                                    <SelectValue placeholder="Velg en bruker" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectGroup>
+                                                        {
+                                                            users.length === 0
+                                                                ? <SelectLabel>Laster brukere ... </SelectLabel>
+                                                                : <SelectLabel>Brukere</SelectLabel>
+                                                        }
+                                                        {users.map((user) => (
+                                                            <SelectItem key={user.id} value={user}>{user.firstName} {user.lastname}</SelectItem>
+                                                        ))}
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+                                            <Button onClick={handleAddingMember}>Legg til medlem</Button>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+
+                            </div>
+
                         </CardFooter>
                     </Card>
                     <div className='flex flex-col gap-3'>

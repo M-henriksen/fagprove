@@ -1,6 +1,6 @@
 import { Inter as FontSans } from "next/font/google"
 import { cn } from "@/lib/utils"
-import "./globals.css";
+import "../../globals.css";
 import Nav from "@/components/react/Nav";
 import { Toaster } from "@/components/ui/toaster"
 import { auth } from "@/lib/firebase";
@@ -24,11 +24,9 @@ export default function RootLayout({ children }) {
           "min-h-screen bg-background font-sans antialiased",
           fontSans.variable
         )}
-        style={{ display: "flex", maxWidth: "100vw", }}
       >
-        <Nav />
         {children}
-        <Toaster />
+
       </body>
     </html>
   );

@@ -1,14 +1,16 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Grid3x3Icon, UsersIcon, CalendarIcon, UserIcon } from "lucide-react"
 import { Label } from "../ui/label"
+import Logo from "../../public/logo-main.svg"
 
 import React from 'react'
 
 const Nav = () => {
     return (
         <div className="flex flex-4 p-2 bg-[#FAFBFB] flex-col justify-between align-middle items-center">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4 pt-2 gap-1">
-                <Label className="py-3">LOGO</Label>
+            <nav className="grid items-start text-sm font-medium pt-2 gap-1">
+                <Image src={Logo} width={150} height={"auto"} alt="logo" className="mb-3" />
                 <Link
                     href="/"
                     className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
@@ -28,10 +30,11 @@ const Nav = () => {
                     className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                 >
                     <UserIcon className="h-4 w-4" />
-                    Arrangementer
+                    Event
                 </Link>
             </nav>
 
+            {/** 
             <div>
                 <Link
                     href="#"
@@ -41,6 +44,7 @@ const Nav = () => {
                     Instillinger
                 </Link>
             </div>
+            */}
         </div>
     )
 }
