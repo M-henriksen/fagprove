@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import Link from "next/link"
-import { resetPassword, signIn } from "@/lib/auth";
+import { signIn } from "@/lib/auth";
 
 export default function Login() {
   const router = useRouter()
