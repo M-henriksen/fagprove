@@ -56,10 +56,7 @@ export default function Groups({ params }) {
     const [member, setMember] = useState({})
     const [user, setUser] = useState({})
     const [postImage, setPostImage] = useState(null)
-    const [addingMember, setAddingMember] = useState([])
     const [events, setEvents] = useState([])
-    // fra evnets
-    const [userToAdd, setUserToAdd] = useState({})
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
     const [date, setDate] = useState()
@@ -80,6 +77,7 @@ export default function Groups({ params }) {
                 router.push("/login")
             }
         });
+
         const unsubGroup = onSnapshot(docRef, (docSnapshot) => {
             console.log(docSnapshot);
             if (docSnapshot.exists()) {
@@ -93,7 +91,8 @@ export default function Groups({ params }) {
 
             }
         });
-        //q parameter og sort på tid
+
+
         const unsubPosts = onSnapshot(postsCollectionRef, (snapshot) => {
             const data = snapshot.docs.map((doc) => {
                 return { id: doc.id, ...doc.data() };
@@ -102,7 +101,7 @@ export default function Groups({ params }) {
         });
 
 
-        {/**  må ha en som henter eventer der group id ligger i groupId feltet */ }
+        {/**  Henter eventer som har groupId som samme som gruppe dokument id. dette for å hente eventer med gruppe tilhørlighet */ }
         const evnetsCollectionRef = collection(db, "events")
         const q = query(evnetsCollectionRef, where("groupId", "==", docID))
         const unsubEvents = onSnapshot(q, (snapshot) => {
@@ -121,9 +120,6 @@ export default function Groups({ params }) {
     }, []);
 
 
-
-    console.log("medlemmer", member)
-
     const handleAddPost = async () => {
         try {
             const res = addPost(docID, content, postImage)
@@ -134,6 +130,7 @@ export default function Groups({ params }) {
             return error
         }
     }
+
     const handleGetUsers = async () => {
         const usersRef = collection(db, "users");
         try {
@@ -313,7 +310,7 @@ export default function Groups({ params }) {
                         </Dialog>
 
                         <Dialog>
-                            <DialogTrigger className='ml-5' onClick={handleGetUsers}>Lag nytt arrangement</DialogTrigger>
+                            <DialogTrigger className='ml-5'>Lag nytt arrangement</DialogTrigger>
                             <DialogContent>
                                 <DialogHeader>
                                     <DialogTitle>Legg til nytt arrangement</DialogTitle>
@@ -400,7 +397,7 @@ export default function Groups({ params }) {
                                             Her kan du se alle medlemmer
                                         </DialogDescription>
                                     </DialogHeader>
-                                    <div className='flex gap-2'>
+                                    <div className='flex flex-col gap-2'>
                                         {group.memberInfo.map((member, index) => (
                                             <span
                                                 key={index}>{member.fullName}
@@ -459,7 +456,7 @@ export default function Groups({ params }) {
                                         <span>Dato tid :</span>
                                         <span>{event.date}</span>
                                     </div>
-                                    <div  className='flex flex-row gap-1'>
+                                    <div className='flex flex-row gap-1'>
                                         <span>Sted :</span>
                                         <span>{event.location}</span>
                                     </div>

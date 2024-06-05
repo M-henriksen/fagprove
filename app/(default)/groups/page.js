@@ -46,11 +46,10 @@ export default function Events() {
     const [users, setUsers] = useState([])
     const [addingMember, setAddingMember] = useState([])
     const [newGroupInfo, setNewGroupInfo] = useState({ title: "", description: "", img: null })
-    const groupCollectionRef = collection(db, "groups")
 
-    //trenger q parameter for sortering av grupper
+
     useEffect(() => {
-
+        const groupCollectionRef = collection(db, "groups")
         const unsubUser = onAuthStateChanged(auth, (currentUser) => {
             if (currentUser) {
                 // setUser(currentUser)
@@ -58,7 +57,6 @@ export default function Events() {
                 router.push("/login")
             }
         });
-
         const unsubscribe = onSnapshot(groupCollectionRef, (snapshot) => {
             const data = snapshot.docs.map((doc) => {
                 return { id: doc.id, ...doc.data() };
@@ -68,9 +66,11 @@ export default function Events() {
         return () => {
             unsubUser()
             unsubscribe();
-
         };
     }, []);
+
+
+    {/** Henter brukere når modalen for oppretting av ny gruppe */ }
 
     const handleGetUsers = async () => {
         const usersRef = collection(db, "users");
@@ -83,12 +83,13 @@ export default function Events() {
         }
     }
 
+    {/** her valgte eg å teste ut en litt annen måte å lagre info o en state. syns denne er bedre da det blir mindre states i koden 
+    fikk desverre ikkje tida å gjøre dette på resten også.
+*/}
     const handleEditGroupInfo = (e, key) => {
         const value = key === "img" ? e.target.files[0] : e.target.value;
         setNewGroupInfo({ ...newGroupInfo, [key]: value });
     };
-
-    console.log("newGroupInfo ", newGroupInfo)
 
 
     const addingNewMembers = () => {

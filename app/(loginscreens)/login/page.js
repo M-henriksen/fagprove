@@ -26,9 +26,6 @@ export default function Login() {
   const [formError, setFormError] = useState(false)
   const [resetEmail, setResetEmail] = useState("")
 
-
-  //sjekker om bruker har skreve inn epost eller passord.
-  //gir også feilmelding til bruker
   const formValidation = () => {
     let status = true;
     const fields = [

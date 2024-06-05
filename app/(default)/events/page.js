@@ -9,45 +9,13 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-    DialogFooter,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-    SelectGroup,
-    SelectLabel
-} from "@/components/ui/select"
 import { Button } from '@/components/ui/button'
 import { Badge } from "@/components/ui/badge"
 import { db } from '@/lib/firebase'
-import { collection, onSnapshot, where, query, getDocs } from 'firebase/firestore'
-//import Image from 'next/image'
-import Image from "@/components/background.jpg"
+import { collection, onSnapshot, where, query, } from 'firebase/firestore'
 import { auth } from '@/lib/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
-import { Textarea } from '@/components/ui/textarea'
-import { createNewEvent } from '@/lib/events'
-import { Calendar as CalendarIcon } from "lucide-react"
-
-import { cn } from "@/lib/utils"
-import { Calendar } from "@/components/ui/calendar"
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover"
 import dayjs from "dayjs"
 
 export default function Events() {
@@ -85,6 +53,9 @@ export default function Events() {
                 router.push("/login")
             }
         });
+
+    {/** har to forskjellige q verdier da collection henter alt. men man må ha query for å kunne ha queryparameter */}
+
         const evnetsCollectionRef = collection(db, "events")
         let q = evnetsCollectionRef;
         if (qParam.qValue !== "" && qParam.param !== "") {
@@ -107,7 +78,6 @@ export default function Events() {
     const handleRedirect = (id) => {
         router.push(`/events/${id}`)
     }
-
 
 
     return (

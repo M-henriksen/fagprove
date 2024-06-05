@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { db } from '@/lib/firebase'
-import { onSnapshot, doc, collection, query, where, getDocs } from 'firebase/firestore'
+import { onSnapshot, doc, collection, getDocs } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
 import { addPost } from '@/lib/events'
 import { auth } from '@/lib/firebase'
@@ -43,7 +43,6 @@ export default function Events({ params }) {
     const docId = params.id
     const docRef = doc(db, "events", docId)
     const postsCollectionRef = collection(db, "events", docId, "posts")
-    //const attendanceCollectionRef = collection(db, "events", docId, "attendance")
     const [event, setEvent] = useState({ memberInfo: [] })
     const [posts, setPosts] = useState([])
     const [user, setUser] = useState({})
@@ -69,16 +68,6 @@ export default function Events({ params }) {
         });
 
 
-        {/** 
-        const statusDocRef = doc(db, "users", `${user.uid}`, "events", docId)
-        const unsubAttendeceStatus = onSnapshot(statusDocRef, (docSnapshot) => {
-            if (docSnapshot.exists()) {
-                setAttendanceStatus(docSnapshot.data().attendence)
-            }
-        })
-        */}
-
-
         const attendanceCollectionRef = collection(db, "events", docId, "attendence")
 
         const unsubAttendece = onSnapshot(attendanceCollectionRef, (snapshot) => {
@@ -89,10 +78,7 @@ export default function Events({ params }) {
             setAttendants(data);
         });
 
-
-        //      const userDocRef = doc(db, "users", `${user.uid}`)
-
-        //q parameter og sort på tid
+        // her må jeg legge på query sånn at den sorteter på tida den ble opprettet
         const unsubPosts = onSnapshot(postsCollectionRef, (snapshot) => {
             const data = snapshot.docs.map((doc) => {
                 let posted = dayjs(doc.data.posted).format("DD-MM-YYYY HH:mm")
@@ -154,15 +140,9 @@ export default function Events({ params }) {
             console.log(res)
         } catch (error) {
             console.log(error)
-            //  toast({
-            //      variant: "destructive",
-            //      title: "Det har skjedd en feil",
-            //      description: error,
-            // })
         }
     }
 
-    console.log("inviterte status", attendants)
 
     return (
         <div className='flex flex-col p-10 gap-5 w-[60vw]'>

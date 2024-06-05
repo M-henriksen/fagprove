@@ -1,13 +1,12 @@
 "use client"
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { onAuthStateChanged } from 'firebase/auth'
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import Link from "next/link"
 import { db } from "@/lib/firebase";
 import { collection, limit, onSnapshot, query, } from "firebase/firestore";
-import { MoveHorizontalIcon, UsersIcon, ChevronRight } from "lucide-react"
+import { UsersIcon, ChevronRight } from "lucide-react"
 import { Label } from "@/components/ui/label";
 import { auth } from "@/lib/firebase";
 
@@ -27,14 +26,11 @@ export default function Home() {
 
     const unsubUser = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        //setUser(currentUser)
-    
+
       } else {
         router.push("/login")
       }
     });
-
-
     const groupQ = query(groupCollectionRef, limit(5))
     const unsubscribeGroup = onSnapshot(groupQ, (snapshot) => {
       const data = snapshot.docs.map((doc) => {
@@ -42,7 +38,7 @@ export default function Home() {
       });
       setGroups(data);
     });
-    const eventsQ = query(groupCollectionRef, limit(5))
+    const eventsQ = query(eventsCollectionRef, limit(5))
     const unsubscribeEvents = onSnapshot(eventsQ, (snapshot) => {
       const data = snapshot.docs.map((doc) => {
         return { id: doc.id, ...doc.data() };
@@ -53,7 +49,6 @@ export default function Home() {
       unsubUser()
       unsubscribeGroup();
       unsubscribeEvents();
-
     };
   }, []);
   console.log(groups)
@@ -66,7 +61,7 @@ export default function Home() {
             <CardTitle>Mine grupper</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-3 justify-center items-center">
-            {events.map((group) => (
+            {groups.map((group) => (
               <div className="flex w-full items-center gap-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800" key={group.id}>
                 <div className="bg-gray-200 rounded-md flex items-center justify-center aspect-square w-12 dark:bg-gray-700">
                   <UsersIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
@@ -102,24 +97,15 @@ export default function Home() {
             <CardTitle>Mine eventer</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-3 justify-center items-center">
-            {groups.map((group) => (
-              <div className="flex w-full items-center gap-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800" key={group.id}>
+            {events.map((events) => (
+              <div className="flex w-full items-center gap-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800" key={events.id}>
                 <div className="bg-gray-200 rounded-md flex items-center justify-center aspect-square w-12 dark:bg-gray-700">
                   <UsersIcon className="w-6 h-6 text-gray-500 dark:text-gray-400" />
                 </div>
                 <div className="grid gap-1 flex-1">
-                  <div className="font-medium">{group.title}</div>
+                  <div className="font-medium">{events.title}</div>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {group.description}
-                  </div>
-                  <div className="flex flex-col gap-2 mt-2 text-sm font-medium">
-                    <Label>Medlemmer :</Label>
-                    {group.memberInfo.slice(0, 5).map((member) => (
-                      <span className="text-gray-500 dark:text-gray-400" key={member.uid}>
-                        {member.fullName}
-                      </span>
-                    ))}
-
+                    {events.description}
                   </div>
                 </div>
                 <Button size="icon" variant="ghost">
